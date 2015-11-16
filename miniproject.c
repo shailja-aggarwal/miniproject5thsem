@@ -101,7 +101,7 @@ void chk_label()
 }
 void chk_opcode()
 {
-    int i,flag=0;
+    int i,flag=0,operand_length;
     for(i=0;i<3;i++)
     {
         if(strcmp(opcode,my_optab[i].code)==0)
@@ -123,6 +123,20 @@ void chk_opcode()
             if(strcmp(opcode,"RESB")==0)
             {
                 locctr=locctr+atoi(operand);
+            }
+              if(strcmp(opcode,"BYTE")==0)
+            {
+                opcode_length=strlen(opcode);
+                if(opcode[0]=='c')
+                {
+                    locctr=locctr+(operand_length-3);
+                }
+                if(opcode[0]=='x')
+                {
+                    operand_length=(operand_length-2)/2
+                    locctr=locctr+operand_length;
+                }
+
             }
         }
     }
