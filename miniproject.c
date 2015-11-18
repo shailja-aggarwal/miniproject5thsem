@@ -2,7 +2,7 @@
 #include<conio.h>
 #include<string.h>
 #include<stdlib.h>
-struct symtab
+struct optab
 {
     char code[20];
     char object_code[20];
