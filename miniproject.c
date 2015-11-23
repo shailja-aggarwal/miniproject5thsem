@@ -122,21 +122,30 @@ void chk_opcode()
 void pass2()
 {
     FILE *f2,*f3,*f4;
-    int l,i,j,len,flag=0,ch=0;
-    char lo[20],value[20],x[20],ad_val[20],op_tab[20],lab[20],loc[20];
+    int l,i,j,len,flag=0,ch=0,total_length;
+    char lo[20],value[20],x[20],ad_val[20],op_tab[20],lab[20],loc[20],addr[20],record[100];
     f2=fopen("inter.txt","r");
     f3=fopen("sym_tab.txt","r");
     f4=fopen("output.txt","w");
     fscanf(f2,"%s%s%s%s",lo,label,opcode,operand);
     printf("\nH^%s^%d^%d\n",prog_name,start_address,length);
+    fprintf(f4,"\nH^%s^%d^%d\n",prog_name,start_address,length);
     while(strcmp(opcode,"END")!=0)
+
     {
-        ch=0;
+        total_length='\0';
+         strcpy(addr,lo);
+
+       while(total_length<30&&strcmp(opcode,"END")!=0)
+        {
+
+
+
         j=0;
         lab[0]='\0';
         loc[0]='\0';
         ad_val[0]='\0';
-        fscanf(f2,"%s%s%s%s",lo,label,opcode,operand);
+       fscanf(f2,"%s%s%s%s",lo,label,opcode,operand);
         if(strcmp(opcode,"BYTE")==0)
         {
             l=strlen(operand);
@@ -147,6 +156,10 @@ void pass2()
                 {
                     itoa(operand[i],value,16);
                     printf("\n%s\t%s\t%s\t%s\t%s\n",lo,label,opcode,operand,value);
+                    //fprintf(f4,"^%s",value);
+                    total_length+=(strlen(value))/2;
+                    strcat(record,"^");
+                    strcat(record,value);
                 }
             }
             else
@@ -156,9 +169,15 @@ void pass2()
                     value[j]=operand[i];
                     j++;
                     printf("\n%s\t%s\t%s\t%s\t%s\n",lo,label,opcode,operand,value);
+                   // fprintf(f4,"^%s",value);
+                    total_length+=strlen(value);
+                     strcat(record,"^");
+                    strcat(record,value);
+                }
+
                 }
             }
-        }
+
         else if(strcmp(opcode,"WORD")==0)
         {
             l=strlen(operand);
@@ -171,6 +190,10 @@ void pass2()
             }
             value[j]=x;
             printf("\n%s\t%s\t%s\t%s\t%s\n",lo,label,opcode,operand,value);
+            //fprintf(f4,"^%s",value);
+            total_length+=strlen(value);
+             strcat(record,"^");
+            strcat(record,value);
         }
         else if(strcmp(opcode,"RESB")==0||strcmp(opcode,"RESW")==0)
         {
@@ -207,17 +230,33 @@ void pass2()
 
 
                    printf("\n%s\t%s\t%s\t%s\t%s%s\n",lo,label,opcode,operand,my_optab[j].object_code,loc);
+                   //fprintf(f4,"^%s%s",my_optab[j].object_code,loc);
+                   total_length+=3;
+                    strcat(record,"^");
+                   strcat(record,my_optab[j].object_code);
+                   strcat(record,loc);
                 }
 
 
                 if(strcmp(operand,"*")==0)
                 {
                     printf("\n%s\t%s\t%s\t%s\t0000%s\n",lo,label,opcode,operand,my_optab[j].object_code);
+                    //fprintf(f4,"^0000%s",my_optab[j].object_code);
+                    total_length+=3;
+                     strcat(record,"^");
+                     strcat(record,"0000");
+                    strcat(record,my_optab[j].object_code);
                 }
 
         }
 
-    }
+        }
+        fprintf(f4,"T^%s^0000%d%s",addr,total_length,record);
+        }
+    fprintf(f4,"\nE^%d\n",start_address);
+
+
+
     fclose(f2);
     fclose(f3);
     fclose(f4);
