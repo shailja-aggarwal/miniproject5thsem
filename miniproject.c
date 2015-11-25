@@ -18,23 +18,58 @@ struct optab
     }
 };
 char label[20],opcode[20],operand[20],prog_name[20];
-int locctr,start_address,length,start_address,sym_count=0;
+int locctr,length,start_address,sym_count=0;
+unsigned long convtodecnum(char hex[])
+{
+    char *hexs;
+    int len = 0;
+    const int b = 16;
+    unsigned long dnum = 0;
+    int i;
+    for (hexs = hex; *hexs != '\0'; hexs++)
+    {
+        len++;
+    }
+    hexs= hex;
+    for (i = 0; *hexs != '\0' && i < len; i++, hexs++)
+    {
+        if (*hexs >= 48 && *hexs <= 57)
+        {
+            dnum += (((int)(*hexs)) - 48) * pow(b, len - i - 1);
+        }
+        else if ((*hexs >= 65 && *hexs <= 70))
+        {
+            dnum += (((int)(*hexs)) - 55) * pow(b, len - i - 1);
+        }
+        else if (*hexs >= 97 && *hexs <= 102)
+        {
+            dnum += (((int)(*hexs)) - 87) * pow(b, len - i - 1);
+        }
+        else
+        {
+            printf(" Invalid Hexadecimal Number \n");
+        }
+    }
+    return dnum;
+}
 void pass1()
 {
-
+    int c;
+    char new_val[20];
 
     FILE *f1,*f2,*f3;
     f1=fopen("input.txt","r");
     f2=fopen("inter.txt","w");
     f3=fopen("sym_tab.txt","w");
     fscanf(f1,"%s%s%s",label,opcode,operand);
+
     if(strcmp(opcode,"START")==0)
     {
-       start_address=atoi(operand);
+       start_address=convtodecnum(operand);
        locctr=start_address;
        strcpy(prog_name,label);
-       printf("\n%d\t%s\t%s\t%s\n",locctr,label,opcode,operand);
-       fprintf(f2,"\n%d\t%s\t%s\t%s\n",locctr,label,opcode,operand);
+       printf("\n%x\t%s\t%s\t%s\n",locctr,label,opcode,operand);
+       fprintf(f2,"%x\t%s\t%s\t%s\n",locctr,label,opcode,operand);
        fscanf(f1,"%s%s%s",label,opcode,operand);
     }
     while(strcmp(opcode,"END")!=0)
@@ -42,11 +77,11 @@ void pass1()
 
         if(strcmp(label,"*")!=0)
         {
-            fprintf(f3,"\n%s\t%d\n",label,locctr);
+            fprintf(f3,"%s\t%x\n",label,locctr);
             sym_count++;
         }
-            printf("\n%d\t%s\t%s\t%s\n",locctr,label,opcode,operand);
-            fprintf(f2,"\n%d\t%s\t%s\t%s\n",locctr,label,opcode,operand);
+            printf("%x\t%s\t%s\t%s\n",locctr,label,opcode,operand);
+            fprintf(f2,"%x\t%s\t%s\t%s\n",locctr,label,opcode,operand);
         if(strcmp(opcode,"*")!=0)
         {
             chk_opcode();
@@ -54,8 +89,8 @@ void pass1()
 
         fscanf(f1,"%s%s%s",label,opcode,operand);
     }
-    printf("\n%d\t%s\t%s\t%s\n",locctr,label,opcode,operand);
-    fprintf(f2,"\n%d\t%s\t%s\t%s\n",locctr,label,opcode,operand);
+    printf("\n%x\t%s\t%s\t%s\n",locctr,label,opcode,operand);
+    fprintf(f2,"%x\t%s\t%s\t%s\n",locctr,label,opcode,operand);
     fclose(f1);
     fclose(f2);
     fclose(f3);
@@ -91,25 +126,23 @@ void chk_opcode()
         else if(strcmp(opcode,"BYTE")==0)
         {
                 operand_length=strlen(operand);
-                if(opcode[0]=='c')
+                if(operand[0]=='c')//operand ......not opcode
                 {
                     locctr=locctr+(operand_length-3);
                 }
-                if(opcode[0]=='x')
+                if(operand[0]=='x')//operand ........not opcode
                 {
-                    for(i=2;i<operand_length;i++)
+                    for(i=2;i<operand[i]!='\0';i++)//................i<operand_length-1.....as for string shubham length is 7.
                     {
                         flag1++;
                     }
-
-
-                    locctr=locctr+flag/2;
+                    locctr=locctr+(flag1/2);//.........................flag1 not flag
                 }
 
         }
         else
         {
-            printf("err");
+            printf("err\n");
         }
 
     }
@@ -123,77 +156,79 @@ void pass2()
 {
     FILE *f2,*f3,*f4;
     int l,i,j,len,flag=0,ch=0,total_length;
-    char lo[20],value[20],x[20],ad_val[20],op_tab[20],lab[20],loc[20],addr[20],record[100];
+    char lo[20],value[20],x[20],ad_val[20],op_tab[20],lab[20],loc[20],addr[20],text_record[100];
     f2=fopen("inter.txt","r");
     f3=fopen("sym_tab.txt","r");
     f4=fopen("output.txt","w");
     fscanf(f2,"%s%s%s%s",lo,label,opcode,operand);
-    printf("\nH^%s^%d^%d\n",prog_name,start_address,length);
-    fprintf(f4,"\nH^%s^%d^%d\n",prog_name,start_address,length);
+    printf("\nH^% 6s^%x^%06d\n",prog_name,start_address,length);
+    fprintf(f4,"\nH^%s^00%x^%06d\n",prog_name,start_address,length);
+    printf("*\t%s\t%s\t%s",lo,label,opcode,operand);
+    fscanf(f2,"%s%s%s%s",lo,label,opcode,operand);
     while(strcmp(opcode,"END")!=0)
-
     {
-        total_length='\0';
+        text_record[0]='\0';
+        total_length=0;
          strcpy(addr,lo);
-
-       while(total_length<30&&strcmp(opcode,"END")!=0)
+        while(total_length<30&&strcmp(opcode,"END")!=0)
         {
 
-
-
+        ch=0;
         j=0;
-        lab[0]='\0';
-        loc[0]='\0';
-        ad_val[0]='\0';
-       fscanf(f2,"%s%s%s%s",lo,label,opcode,operand);
+        lab[0]=0;
+        loc[0]=0;
+        ad_val[0]=0;
         if(strcmp(opcode,"BYTE")==0)
         {
             l=strlen(operand);
             l=l-3;
-            if(operand[0]=="C")
+            strcat(text_record,"^");
+            if(operand[0]=='c')
             {
-                for(i=0;i<(l+2);i++)
+                printf("\n%s\t%s\t%s\t%s\t",lo,label,opcode,operand);
+                for(i=2;i<(l+2);i++)
                 {
                     itoa(operand[i],value,16);
-                    printf("\n%s\t%s\t%s\t%s\t%s\n",lo,label,opcode,operand,value);
-                    //fprintf(f4,"^%s",value);
-                    total_length+=(strlen(value))/2;
-                    strcat(record,"^");
-                    strcat(record,value);
+                    printf("%s",value);
+                    strcat(text_record,value);
+
                 }
+                printf("\n");
+                total_length+=(strlen(value))/2;
             }
             else
             {
-                for(i=0;i<(l+2);i++)
+                for(i=2;i<(l+2);i++)
                 {
                     value[j]=operand[i];
                     j++;
-                    printf("\n%s\t%s\t%s\t%s\t%s\n",lo,label,opcode,operand,value);
-                   // fprintf(f4,"^%s",value);
-                    total_length+=strlen(value);
-                     strcat(record,"^");
-                    strcat(record,value);
-                }
 
                 }
+                value[j]='\0';
+                 printf("\n%s\t%s\t%s\t%s\t%s\n",lo,label,opcode,operand,value);
+
+                strcat(text_record,value);
+                total_length+=(strlen(value))/2;
             }
-
+        }
         else if(strcmp(opcode,"WORD")==0)
         {
             l=strlen(operand);
-            atoi(itoa(operand,x,16));
+            int xx;
+            xx=atoi(operand);
+            itoa(xx,x,16);
             len=strlen(x);
+            j=0;
             for(i=0;i<(6-len);i++)
             {
-                value[j]="0";
+                value[j]='0';
                 j++;
             }
-            value[j]=x;
+            strcat(value,x);
             printf("\n%s\t%s\t%s\t%s\t%s\n",lo,label,opcode,operand,value);
-            //fprintf(f4,"^%s",value);
-            total_length+=strlen(value);
-             strcat(record,"^");
-            strcat(record,value);
+             strcat(text_record,"^");
+            strcat(text_record,value);
+            total_length+=(strlen(value))/2;
         }
         else if(strcmp(opcode,"RESB")==0||strcmp(opcode,"RESW")==0)
         {
@@ -217,46 +252,48 @@ void pass2()
 
                 if(strcmp(operand,"*")!=0)
                 {
-                    rewind(f3);
 
 
 
                 fscanf(f3,"%s%s",lab,loc);
 
-                while(strcmp(operand,lab)!=0)
 
-                fscanf(f3,"%s%s",lab,loc);
+                while(ch<=sym_count)
+                {
+                    if(strcmp(operand,lab)==0)
+                    {
+                        strcpy(ad_val,loc);
+                        break;
+                    }
+                    fscanf(f3,"%s%s",lab,loc);
+                    ch++;
 
-
-
-                   printf("\n%s\t%s\t%s\t%s\t%s%s\n",lo,label,opcode,operand,my_optab[j].object_code,loc);
-                   //fprintf(f4,"^%s%s",my_optab[j].object_code,loc);
-                   total_length+=3;
-                    strcat(record,"^");
-                   strcat(record,my_optab[j].object_code);
-                   strcat(record,loc);
                 }
-
+                    rewind(f3);
+                   printf("\n%s\t%s\t%s\t%s\t%s%s\n",lo,label,opcode,operand,my_optab[j].object_code,ad_val);
+                    strcat(text_record,"^");
+                    strcat(text_record,my_optab[j].object_code);
+                    strcat(text_record,ad_val);
+                    total_length+=3;
+                }
 
                 if(strcmp(operand,"*")==0)
                 {
-                    printf("\n%s\t%s\t%s\t%s\t0000%s\n",lo,label,opcode,operand,my_optab[j].object_code);
-                    //fprintf(f4,"^0000%s",my_optab[j].object_code);
-                    total_length+=3;
-                     strcat(record,"^");
-                     strcat(record,"0000");
-                    strcat(record,my_optab[j].object_code);
+                    printf("\n%s\t%s\t%s\t%s\t%s0000\n",lo,label,opcode,operand,my_optab[j].object_code);
+                    strcat(text_record,"^");
+                    strcat(text_record,my_optab[j].object_code);
+                    strcat(text_record,"0000");
+                     total_length+=3;
                 }
 
-        }
 
         }
-        fprintf(f4,"T^%s^0000%d%s",addr,total_length,record);
-        }
-    fprintf(f4,"\nE^%d\n",start_address);
+        fscanf(f2,"%s%s%s%s",lo,label,opcode,operand);
 
-
-
+    }
+            fprintf(f4,"\nT^00%s^%x%s\n",addr,total_length,text_record);
+    }
+    fprintf(f4,"\nE^00%x\n",start_address);
     fclose(f2);
     fclose(f3);
     fclose(f4);
@@ -271,3 +308,5 @@ void main()
     pass2();
     getch();
 }
+
+
