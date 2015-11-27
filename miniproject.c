@@ -126,17 +126,17 @@ void chk_opcode()
         else if(strcmp(opcode,"BYTE")==0)
         {
                 operand_length=strlen(operand);
-                if(operand[0]=='c')//operand ......not opcode
+                if(operand[0]=='c')
                 {
                     locctr=locctr+(operand_length-3);
                 }
-                if(operand[0]=='x')//operand ........not opcode
+                if(operand[0]=='x')
                 {
-                    for(i=2;i<operand[i]!='\0';i++)//................i<operand_length-1.....as for string shubham length is 7.
+                    for(i=2;i<operand[i]!='\0';i++)
                     {
                         flag1++;
                     }
-                    locctr=locctr+(flag1/2);//.........................flag1 not flag
+                    locctr=locctr+(flag1/2);
                 }
 
         }
